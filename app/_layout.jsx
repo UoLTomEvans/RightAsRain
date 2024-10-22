@@ -1,30 +1,10 @@
 import { SplashScreen, Tabs } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
-import { View, Text, Image } from "react-native";
 import { icons } from "../constants";
+import TabIcon from "../components/TabIcon.jsx";
 
 SplashScreen.preventAutoHideAsync();
-
-// Component for TabIcons in layout
-const TabIcon = ({ icon, color, name, focused }) => {
-  return (
-    <View className="items-center justify-center gap-2">
-      <Image
-        source={icon}
-        resizeMode="contain"
-        tintColor={color}
-        className="w-6 h-6"
-      />
-      <Text
-        className={`${focused ? "font-psemibold" : "font-pregular"} text-xs`}
-        style={{ color: color }}
-      >
-        {name}
-      </Text>
-    </View>
-  );
-};
 
 const RootLayout = () => {
   // Bring in all fonts
