@@ -1,62 +1,104 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
 import { icons } from "../constants";
+import { debounce } from "lodash";
+import { fetchLocations, fetchWeatherForecast } from "../api/weather";
+import { useWeather } from "../context/WeatherContext"; // Import the custom hook
 
 const TopBar = () => {
   const [searchActive, setSearchActive] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [locations, setLocations] = useState([1, 2, 3]);
+  const [locations, setLocations] = useState([]);
+  const { weather, setWeather } = useWeather(); // Access global weather state
 
+  // Fetch weather data for location from WeatherAPI
   const handleLocation = (loc) => {
-    console.log("Location: ", loc);
+    setSearchActive(false);
+    setLocations([]);
+    fetchWeatherForecast({
+      cityName: loc.name,
+      days: "5",
+    }).then((data) => {
+      setWeather(data); // Update global weather state
+    });
   };
 
+  // Fetch locations for searching from WeatherAPI
+  const handleSearch = (value) => {
+    if (value.length > 2) {
+      fetchLocations({ cityName: value }).then((data) => {
+        setLocations(data);
+      });
+    }
+  };
+
+  // Prevent frequent API calls
+  const handleTextDebounce = useMemo(
+    () => debounce(handleSearch, 800),
+    [handleSearch]
+  );
+
+  // Default weather
+  const fetchMyWeatherData = async () => {
+    fetchWeatherForecast({
+      cityName: "Liverpool",
+      days: "5",
+    }).then((data) => {
+      setWeather(data);
+    });
+  };
+
+  // Happens on load
+  useEffect(() => {
+    fetchMyWeatherData();
+  }, []);
+
   return (
-    <View className="flex-row justify-between items-center bg-gray-900 px-4 py-2 border-b border-gray-700">
+    <View className="flex-row justify-between items-center bg-gray-900 px-4 py-2 border-b border-gray-700 relative z-50">
       {!searchActive ? (
         <>
-          <Text className="text-white text-lg font-pbold">My App</Text>
+          <Text className="text-white text-lg font-bold">Right as Rain!</Text>
           <TouchableOpacity onPress={() => setSearchActive(true)}>
             <Image
               source={icons.search}
               resizeMode="contain"
-              tintColor="#CDCDE0"
-              className="w-6 h-6"
+              className="w-6 h-6 tint-[#CDCDE0]"
             />
           </TouchableOpacity>
         </>
       ) : (
         <TextInput
-          className="bg-gray-800 text-white flex-1 p-2 rounded font-plight"
-          placeholder="Search..."
+          className="bg-gray-800 text-white flex-1 p-2 rounded font-light"
+          placeholder="Search for a city..."
           placeholderTextColor="#bbb"
-          value={searchText}
-          onChangeText={setSearchText}
+          onChangeText={handleTextDebounce}
           autoFocus
-          onBlur={() => setSearchActive(false)} // Collapse when focus is lost
+          onBlur={() => setSearchActive(false)}
         />
       )}
-      {locations.length > 0 && searchActive ? (
-        <View className="absolute w-full bg-gray-300 top-16 rounded">
-          {locations.map((loc, index) => {
-            let showBorder = index + 1 != locations.length;
-            let borderClass = showBorder ? "border-b-2" : "";
 
+      {/* Search window */}
+      {locations.length > 0 && searchActive ? (
+        <View className="absolute w-full bg-gray-300 top-16 rounded max-h-60 overflow-hidden">
+          {locations.map((loc, index) => {
+            const showBorder = index + 1 !== locations.length;
             return (
               <TouchableOpacity
                 onPress={() => handleLocation(loc)}
                 key={index}
-                className={
-                  "flex-row items-center border-0 p-3 px-4 mb-1 " + borderClass
-                }
+                className={`flex-row items-center p-3 px-4 ${
+                  showBorder ? "border-b border-gray-400" : ""
+                }`}
               >
                 <Image
                   source={icons.locationpin}
                   resizeMode="contain"
-                  tintColor="#161622"
-                  className="w-6 h-6 mr-2"
+                  className="w-6 h-6 mr-2 tint-[#161622]"
                 />
-                <Text className="text-lg font-pregular">LOCATIONS HERE</Text>
+                <Text className="text-lg font-normal mr-3">
+                  {[loc?.name, loc?.region, loc?.country]
+                    .filter(Boolean)
+                    .join(", ")}
+                </Text>
               </TouchableOpacity>
             );
           })}
