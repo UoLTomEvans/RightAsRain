@@ -41,8 +41,8 @@ const Forecast = () => {
                 <DaysWeather
                   key={index}
                   day={dayName}
-                  // value={item?.day?.avgtemp_c}
-                  value={item?.day?.condition?.text}
+                  value={item?.day?.avgtemp_c}
+                  // value={item?.day?.condition?.text}
                   icon={getWeatherIcon(item?.day?.condition?.text)}
                 />
               );

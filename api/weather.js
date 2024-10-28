@@ -2,11 +2,13 @@ import axios from "axios";
 import { API_KEY } from "@env";
 
 const forecastEndpoint = (params) =>
-  `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${params.cityName}&days=${params.days}&aqi=no&alerts=no`;
+  `https://api.weatherapi.com/v1/forecast.json?key=${API_KEY}&q=${params.query}&days=${params.days}&aqi=no&alerts=no`;
 const locationsEndpoint = (params) =>
-  `https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${params.cityName}`;
+  `https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${params.query}`;
 
 const apiCall = async (endpoint, setError) => {
+  console.log(endpoint);
+
   const options = {
     method: "GET",
     url: endpoint,
@@ -17,7 +19,6 @@ const apiCall = async (endpoint, setError) => {
     return response.data;
   } catch (err) {
     setError(err.message); // Sets the error in global state for app-wide access
-    console.log(err.message);
     return { error: err.message };
   }
 };

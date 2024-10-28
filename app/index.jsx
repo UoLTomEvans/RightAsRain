@@ -1,81 +1,114 @@
 import React from "react";
-import TopBar from "../components/TopBar";
+import {
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  View,
+  Text,
+  Image,
+  Platform,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { View, Text, Image } from "react-native";
-import { icons } from "../constants";
+import TopBar from "../components/TopBar";
 import InformationWidget from "../components/InformationWidget";
 import ErrorDisplay from "../components/ErrorDisplay";
+import Loading from "../components/Loading";
 import { useWeather } from "../context/WeatherContext";
 import { useError } from "../context/ErrorContext";
-import { getWeatherIcon } from "../utils/getWeatherIcons";
 import { useLoad } from "../context/LoadingContext";
-import Loading from "../components/Loading";
+import { getWeatherIcon } from "../utils/getWeatherIcons";
+import { icons } from "../constants";
 
 const Home = () => {
-  const { weather } = useWeather(); // Access the global weather state
-  const { error } = useError(); // Access the global error state
-  const { loadStatus } = useLoad(); // Access the global load state
-
-  // Extract weather details if no error
+  const { height } = useWindowDimensions(); // Dynamically get screen height
+  const { weather } = useWeather();
+  const { error } = useError();
+  const { loadStatus } = useLoad();
   const { current, location } = weather;
 
+  const topMargin = height * 0.05; // Adjusts distance from top
+  const bottomMargin = height * 0.1; // Adjusts distance from bottom
+
   return (
-    <SafeAreaView className="bg-primary h-full">
+    <SafeAreaView className="flex-1 bg-primary">
       <StatusBar backgroundColor="#161622" style="light" />
+
+      {/* Static TopBar */}
       <TopBar />
 
-      {loadStatus ? (
-        <Loading />
-      ) : error ? (
-        <ErrorDisplay message={error} />
-      ) : (
-        <View className="mx-4 flex justify-around flex-1 mb-2">
-          {/* Location Details */}
-          <Text className="text-white text-center text-2xl font-pbold">
-            {location?.name},
-            <Text className="text-lg font-psemibold text-secondary-100">
-              {" "}
-              {location?.country}
-            </Text>
-          </Text>
+      <KeyboardAvoidingView
+        behavior={Platform.select({ ios: "padding", android: "height" })}
+        keyboardVerticalOffset={Platform.OS === "android" ? 80 : 0}
+        style={{ flex: 1 }}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
+            <View className="flex-1 justify-between mx-4 mb-2">
+              {loadStatus ? (
+                <Loading />
+              ) : error ? (
+                <ErrorDisplay message={error} />
+              ) : (
+                <View style={{ flex: 1, justifyContent: "space-between" }}>
+                  {/* Location Details */}
+                  <View style={{ marginTop: topMargin }}>
+                    <Text className="text-2xl text-center font-pbold text-white">
+                      {location?.name},
+                      <Text className="text-lg font-psemibold text-secondary-100">
+                        {" "}
+                        {location?.country}
+                      </Text>
+                    </Text>
+                  </View>
 
-          {/* Weather Image */}
-          <View className="flex-row justify-center">
-            <Image
-              source={getWeatherIcon(current?.condition?.text)}
-              resizeMode="contain"
-              className="w-52 h-52"
-            />
-          </View>
+                  {/* Weather Image */}
+                  <View className="flex-row justify-center mt-4">
+                    <Image
+                      source={getWeatherIcon(current?.condition?.text)}
+                      resizeMode="contain"
+                      className="w-52 h-52"
+                    />
+                  </View>
 
-          {/* Temperature & Conditions*/}
-          <View className="space-y-2">
-            <Text className="text-center font-pbold text-white text-6xl ml-5 py-2">
-              {current?.temp_c} &#176;C
-            </Text>
-            <Text className="text-center font-pregular text-white text-xl ml-5 py-2 tracking-widest">
-              {current?.condition?.text}
-            </Text>
-          </View>
+                  {/* Temperature & Conditions */}
+                  <View className="space-y-2">
+                    <Text className="text-6xl text-center font-pbold text-white py-2">
+                      {current?.temp_c} &#176;C
+                    </Text>
+                    <Text className="text-xl text-center font-pregular text-white tracking-widest py-2">
+                      {current?.condition?.text}
+                    </Text>
+                  </View>
 
-          {/* More information */}
-          <View className="flex-row justify-between mx-4">
-            {/* Windspeed */}
-            <InformationWidget
-              icon={icons.wind}
-              information={`${current?.wind_kph} km/h`}
-            />
-            {/* Humidity */}
-            <InformationWidget
-              icon={icons.drop}
-              information={`${current?.humidity}%`}
-            />
-            {/* Sunrise */}
-            <InformationWidget icon={icons.sunwhite} information="06:04 AM" />
-          </View>
-        </View>
-      )}
+                  {/* More information */}
+                  <View
+                    className="flex-row justify-between mx-4"
+                    style={{ marginBottom: bottomMargin }}
+                  >
+                    <InformationWidget
+                      icon={icons.wind}
+                      information={`${current?.wind_kph} km/h`}
+                    />
+                    <InformationWidget
+                      icon={icons.drop}
+                      information={`${current?.humidity}%`}
+                    />
+                    <InformationWidget
+                      icon={icons.sunwhite}
+                      information={
+                        weather?.forecast?.forecastday?.[0]?.astro?.sunrise
+                      }
+                    />
+                  </View>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

@@ -6,6 +6,8 @@ import { fetchLocations, fetchWeatherForecast } from "../api/weather";
 import { useWeather } from "../context/WeatherContext";
 import { useError } from "../context/ErrorContext"; // Import Error Context
 import { useLoad } from "../context/LoadingContext";
+import { clearData, getData, storeData } from "../utils/asyncStorage";
+import * as Location from "expo-location";
 
 const TopBar = () => {
   const [searchActive, setSearchActive] = useState(false);
@@ -22,7 +24,7 @@ const TopBar = () => {
     try {
       const data = await fetchWeatherForecast(
         {
-          cityName: loc.name,
+          query: loc.name,
           days: "5",
         },
         setError
@@ -31,6 +33,13 @@ const TopBar = () => {
         console.error("Error fetching weather data:", data.error);
       } else {
         setWeather(data); // Update global weather state
+        storeData(
+          "location",
+          `${JSON.stringify(loc.lat)},${JSON.stringify(loc.lon)}`
+        );
+        console.log(
+          `data: ${JSON.stringify(loc.lat)},${JSON.stringify(loc.lon)}`
+        );
       }
     } catch (err) {
       console.error("Unhandled error fetching weather:", err);
@@ -43,7 +52,7 @@ const TopBar = () => {
   const handleSearch = async (value) => {
     if (value.length > 2) {
       try {
-        const data = await fetchLocations({ cityName: value }, setError);
+        const data = await fetchLocations({ query: value }, setError);
         if (data.error) {
           console.error("Error fetching location data:", data.error);
         } else {
@@ -63,11 +72,39 @@ const TopBar = () => {
 
   // Fetch default weather data for a preset location
   const fetchMyWeatherData = async () => {
+    let savedCity = await getData("location");
+    console.log("City lat/lon on load: ", savedCity);
+
+    let queryLocation;
+
+    if (savedCity) {
+      // If there's a saved city, use it directly as the query location
+      queryLocation = savedCity;
+    } else {
+      // If no saved city, fetch the current location of the user
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          setError("Permission to access location was denied");
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({});
+        queryLocation = `${location.coords.latitude},${location.coords.longitude}`;
+        console.log("Using current location:", queryLocation);
+      } catch (error) {
+        console.error("Error getting current location:", error);
+        setError("Unable to retrieve current location.");
+        setLoadStatus(false);
+        return;
+      }
+    }
+
     setLoadStatus(true);
     try {
       const data = await fetchWeatherForecast(
         {
-          cityName: "Liverpool",
+          query: queryLocation,
           days: "5",
         },
         setError
