@@ -8,8 +8,6 @@ const locationsEndpoint = (params) =>
   `https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${params.query}`;
 
 const apiCall = async (endpoint, setError) => {
-  console.log(endpoint);
-
   const options = {
     method: "GET",
     url: endpoint,

@@ -45,12 +45,14 @@ const TopBar = () => {
     }
   };
 
+  // Fetch data when app is opened
   const fetchInitialWeatherData = async () => {
     const savedCity = await getData("location");
     const locationQuery = savedCity || (await getCurrentLocationQuery());
     if (locationQuery) await updateWeatherData(locationQuery);
   };
 
+  // If there's no saved locations, grab current device location
   const getCurrentLocationQuery = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
@@ -61,12 +63,14 @@ const TopBar = () => {
     return `${coords.latitude},${coords.longitude}`;
   };
 
+  // Handle location pressed in list
   const handleLocation = async (loc) => {
     setSearchActive(false);
     setLocations([]);
     await updateWeatherData(`${loc.lat},${loc.lon}`);
   };
 
+  // Handle typing in search bar
   const handleSearch = useMemo(
     () =>
       debounce(async (value) => {
@@ -82,12 +86,14 @@ const TopBar = () => {
     [setError]
   );
 
+  // Handle when current location button is pressed
   const handleCurrentLocation = async () => {
     clearData();
     const locationQuery = await getCurrentLocationQuery();
     if (locationQuery) await updateWeatherData(locationQuery);
   };
 
+  // On app open
   useEffect(() => {
     fetchInitialWeatherData();
   }, []);
