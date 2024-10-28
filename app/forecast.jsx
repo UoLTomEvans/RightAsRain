@@ -42,8 +42,7 @@ const Forecast = () => {
                   key={index}
                   day={dayName}
                   value={item?.day?.avgtemp_c}
-                  // value={item?.day?.condition?.text}
-                  icon={getWeatherIcon(item?.day?.condition?.text)}
+                  icon={getWeatherIcon(item?.day?.condition?.code)}
                 />
               );
             })}

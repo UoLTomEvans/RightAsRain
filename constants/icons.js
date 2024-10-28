@@ -15,6 +15,7 @@ import wind from "../assets/icons/wind.png";
 import sunwhite from "../assets/icons/sunwhite.png";
 import drop from "../assets/icons/drop.png";
 import warning from "../assets/icons/warning.png";
+import target from "../assets/icons/target.png";
 
 export default {
   home,
@@ -34,4 +35,5 @@ export default {
   wind,
   drop,
   warning,
+  target,
 };

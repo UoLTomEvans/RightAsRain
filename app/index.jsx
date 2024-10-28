@@ -67,7 +67,7 @@ const Home = () => {
                   {/* Weather Image */}
                   <View className="flex-row justify-center mt-4">
                     <Image
-                      source={getWeatherIcon(current?.condition?.text)}
+                      source={getWeatherIcon(current?.condition?.code)}
                       resizeMode="contain"
                       className="w-52 h-52"
                     />
