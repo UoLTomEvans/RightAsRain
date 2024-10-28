@@ -45,14 +45,20 @@ const TopBar = () => {
     }
   };
 
+  const fetchInitialWeatherData = async () => {
+    const savedCity = await getData("location");
+    const locationQuery = savedCity || (await getCurrentLocationQuery());
+    if (locationQuery) await updateWeatherData(locationQuery);
+  };
+
   const getCurrentLocationQuery = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       setError("Permission to access location was denied");
       return null;
     }
-    const location = await Location.getCurrentPositionAsync({});
-    return `${location.coords.latitude},${location.coords.longitude}`;
+    const { coords } = await Location.getCurrentPositionAsync({});
+    return `${coords.latitude},${coords.longitude}`;
   };
 
   const handleLocation = async (loc) => {
@@ -67,9 +73,7 @@ const TopBar = () => {
         if (value.length > 2) {
           try {
             const data = await fetchLocations({ query: value }, setError);
-            data.error
-              ? console.error("Error fetching location data:", data.error)
-              : setLocations(data);
+            if (!data.error) setLocations(data);
           } catch (err) {
             console.error("Unhandled error fetching locations:", err);
           }
@@ -77,12 +81,6 @@ const TopBar = () => {
       }, 800),
     [setError]
   );
-
-  const fetchInitialWeatherData = async () => {
-    const savedCity = await getData("location");
-    const locationQuery = savedCity || (await getCurrentLocationQuery());
-    if (locationQuery) await updateWeatherData(locationQuery);
-  };
 
   const handleCurrentLocation = async () => {
     clearData();
@@ -96,7 +94,16 @@ const TopBar = () => {
 
   return (
     <View className="flex-row justify-between items-center bg-gray-900 px-4 py-2 border-b border-gray-700 relative z-50">
-      {!searchActive ? (
+      {searchActive ? (
+        <TextInput
+          className="bg-gray-800 text-white flex-1 p-2 rounded font-light"
+          placeholder="Search for a city..."
+          placeholderTextColor="#bbb"
+          onChangeText={handleSearch}
+          autoFocus
+          onBlur={() => setSearchActive(false)}
+        />
+      ) : (
         <>
           <Text className="text-white text-lg font-bold">Right as Rain</Text>
           <View className="flex-row items-center space-x-2">
@@ -116,15 +123,6 @@ const TopBar = () => {
             </TouchableOpacity>
           </View>
         </>
-      ) : (
-        <TextInput
-          className="bg-gray-800 text-white flex-1 p-2 rounded font-light"
-          placeholder="Search for a city..."
-          placeholderTextColor="#bbb"
-          onChangeText={handleSearch}
-          autoFocus
-          onBlur={() => setSearchActive(false)}
-        />
       )}
 
       <Modal
@@ -141,17 +139,13 @@ const TopBar = () => {
             onChangeText={handleSearch}
             autoFocus
           />
-
           <FlatList
             data={locations}
             keyExtractor={(item, index) => index.toString()}
             className="mx-2 mt-2 bg-primary rounded-lg"
             renderItem={({ item, index }) => (
               <TouchableOpacity
-                onPress={() => {
-                  handleLocation(item);
-                  setSearchActive(false);
-                }}
+                onPress={() => handleLocation(item)}
                 className={`flex-row items-center p-3 px-4 ${
                   index + 1 !== locations.length
                     ? "border-b border-gray-400"
@@ -163,7 +157,7 @@ const TopBar = () => {
                   className="mr-2 w-6 h-6"
                   imageStyle={{ tintColor: "#FF9C01" }}
                 />
-                <Text className="text-lg font-pregular mr-3 flex-wrap, text-white">
+                <Text className="text-lg font-pregular mr-3 flex-wrap text-white">
                   {[item?.name, item?.region, item?.country]
                     .filter(Boolean)
                     .join(", ")}
