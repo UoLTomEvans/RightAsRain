@@ -35,9 +35,4 @@ yarn-error.*
 *.tsbuildinfo
 
 # config
-<<<<<<< HEAD
-=======
-config.env
->>>>>>> 211a56b91978e38e9115f23a09b4e7f94ade8aeb
-config.env
 config.env
