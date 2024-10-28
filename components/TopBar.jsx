@@ -5,24 +5,27 @@ import { debounce } from "lodash";
 import { fetchLocations, fetchWeatherForecast } from "../api/weather";
 import { useWeather } from "../context/WeatherContext";
 import { useError } from "../context/ErrorContext"; // Import Error Context
+import { useLoad } from "../context/LoadingContext";
 
 const TopBar = () => {
   const [searchActive, setSearchActive] = useState(false);
   const [locations, setLocations] = useState([]);
   const { setError } = useError(); // Access setError from error context
   const { weather, setWeather } = useWeather(); // Access global weather state
+  const { setLoadStatus } = useLoad(); // Access global load state
 
   // Fetch weather data for a selected location from WeatherAPI
   const handleLocation = async (loc) => {
     setSearchActive(false);
     setLocations([]);
+    setLoadStatus(true);
     try {
       const data = await fetchWeatherForecast(
         {
           cityName: loc.name,
           days: "5",
         },
-        setError // Pass setError to handle errors within the API call
+        setError
       );
       if (data.error) {
         console.error("Error fetching weather data:", data.error);
@@ -31,6 +34,8 @@ const TopBar = () => {
       }
     } catch (err) {
       console.error("Unhandled error fetching weather:", err);
+    } finally {
+      setLoadStatus(false); // Ensure loading is turned off
     }
   };
 
@@ -38,7 +43,7 @@ const TopBar = () => {
   const handleSearch = async (value) => {
     if (value.length > 2) {
       try {
-        const data = await fetchLocations({ cityName: value }, setError); // Pass setError
+        const data = await fetchLocations({ cityName: value }, setError);
         if (data.error) {
           console.error("Error fetching location data:", data.error);
         } else {
@@ -53,18 +58,19 @@ const TopBar = () => {
   // Prevent frequent API calls using debounce
   const handleTextDebounce = useMemo(
     () => debounce(handleSearch, 800),
-    [handleSearch]
+    [setError]
   );
 
   // Fetch default weather data for a preset location
   const fetchMyWeatherData = async () => {
+    setLoadStatus(true);
     try {
       const data = await fetchWeatherForecast(
         {
           cityName: "Liverpool",
           days: "5",
         },
-        setError // Pass setError
+        setError
       );
       if (data.error) {
         console.error("Error fetching default weather:", data.error);
@@ -73,6 +79,8 @@ const TopBar = () => {
       }
     } catch (err) {
       console.error("Unhandled error fetching default weather:", err);
+    } finally {
+      setLoadStatus(false);
     }
   };
 

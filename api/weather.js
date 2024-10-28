@@ -27,7 +27,7 @@ export const fetchWeatherForecast = (params, setError) => {
   return apiCall(forecastUrl, setError);
 };
 
-export const fetchLocations = (params) => {
+export const fetchLocations = (params, setError) => {
   let locationsUrl = locationsEndpoint(params);
   return apiCall(locationsUrl, setError);
 };

@@ -8,49 +8,48 @@ import { useWeather } from "../context/WeatherContext";
 import { getWeatherIcon } from "../utils/getWeatherIcons";
 import { useError } from "../context/ErrorContext";
 import ErrorDisplay from "../components/ErrorDisplay";
+import { useLoad } from "../context/LoadingContext";
+import Loading from "../components/Loading";
 
 const Forecast = () => {
   const { weather } = useWeather(); // Access the global weather state
   const { error } = useError(); // Access the global error state
-
-  // If there's an error, render ErrorDisplay
-  if (error) {
-    return (
-      <SafeAreaView className="bg-primary h-full">
-        <StatusBar backgroundColor="#161622" style="light" />
-        <ErrorDisplay message={error} />
-      </SafeAreaView>
-    );
-  }
+  const { loadStatus } = useLoad(); // Access the global load state
 
   return (
     <SafeAreaView className="bg-primary h-full">
       <StatusBar backgroundColor="#161622" style="light" />
       <TopBar />
 
-      <View className="mb-2 space-y-3 mt-5 items-center">
-        <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 15 }}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Map through forecast to render DaysWeather components */}
-          {weather?.forecast?.forecastday?.map((item, index) => {
-            let date = new Date(item.date);
-            let options = { weekday: "long" };
-            let dayName = date.toLocaleDateString("en-UK", options);
+      {loadStatus ? (
+        <Loading />
+      ) : error ? (
+        <ErrorDisplay message={error} />
+      ) : (
+        <View className="mx-4 flex justify-around flex-1 space-y-3 items-center">
+          <ScrollView
+            contentContainerStyle={{ paddingHorizontal: 15 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Map through forecast to render DaysWeather components */}
+            {weather?.forecast?.forecastday?.map((item, index) => {
+              let date = new Date(item.date);
+              let options = { weekday: "long" };
+              let dayName = date.toLocaleDateString("en-UK", options);
 
-            return (
-              <DaysWeather
-                key={index}
-                day={dayName}
-                // value={item?.day?.avgtemp_c}
-                value={item?.day?.condition?.text}
-                icon={getWeatherIcon(item?.day?.condition?.text)}
-              />
-            );
-          })}
-        </ScrollView>
-      </View>
+              return (
+                <DaysWeather
+                  key={index}
+                  day={dayName}
+                  // value={item?.day?.avgtemp_c}
+                  value={item?.day?.condition?.text}
+                  icon={getWeatherIcon(item?.day?.condition?.text)}
+                />
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
     </SafeAreaView>
   );
 };

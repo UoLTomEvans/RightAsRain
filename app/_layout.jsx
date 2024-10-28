@@ -5,6 +5,7 @@ import { icons } from "../constants";
 import TabIcon from "../components/TabIcon.jsx";
 import { WeatherProvider } from "../context/WeatherContext.js";
 import { ErrorProvider, useError } from "../context/ErrorContext.js";
+import { LoadingProvider } from "../context/LoadingContext.js";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -44,52 +45,54 @@ const AppContent = () => {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <WeatherProvider>
-      <Tabs
-        screenOptions={{
-          tabBarShowLabel: false,
-          tabBarActiveTintColor: "#FFA001",
-          tabBarInactiveTintColor: "#CDCDE0",
-          tabBarStyle: {
-            backgroundColor: "#161622",
-            borderTopWidth: 1,
-            borderTopColor: "#232533",
-            height: 84,
-          },
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: "Home",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon
-                icon={icons.home}
-                color={color}
-                name="Home"
-                focused={focused}
-              />
-            ),
+    <LoadingProvider>
+      <WeatherProvider>
+        <Tabs
+          screenOptions={{
+            tabBarShowLabel: false,
+            tabBarActiveTintColor: "#FFA001",
+            tabBarInactiveTintColor: "#CDCDE0",
+            tabBarStyle: {
+              backgroundColor: "#161622",
+              borderTopWidth: 1,
+              borderTopColor: "#232533",
+              height: 84,
+            },
           }}
-        />
-        <Tabs.Screen
-          name="forecast"
-          options={{
-            title: "Forecast",
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon
-                icon={icons.forecast}
-                color={color}
-                name="Forecast"
-                focused={focused}
-              />
-            ),
-          }}
-        />
-      </Tabs>
-    </WeatherProvider>
+        >
+          <Tabs.Screen
+            name="index"
+            options={{
+              title: "Home",
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <TabIcon
+                  icon={icons.home}
+                  color={color}
+                  name="Home"
+                  focused={focused}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="forecast"
+            options={{
+              title: "Forecast",
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <TabIcon
+                  icon={icons.forecast}
+                  color={color}
+                  name="Forecast"
+                  focused={focused}
+                />
+              ),
+            }}
+          />
+        </Tabs>
+      </WeatherProvider>
+    </LoadingProvider>
   );
 };
 
