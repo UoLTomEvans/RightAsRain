@@ -5,11 +5,26 @@ import { StatusBar } from "expo-status-bar";
 import { View, Text, Image } from "react-native";
 import { icons } from "../constants";
 import InformationWidget from "../components/InformationWidget";
+import ErrorDisplay from "../components/ErrorDisplay";
 import { useWeather } from "../context/WeatherContext";
+import { useError } from "../context/ErrorContext";
 import { getWeatherIcon } from "../utils/getWeatherIcons";
 
 const Home = () => {
   const { weather } = useWeather(); // Access the global weather state
+  const { error } = useError(); // Access the global error state
+
+  // If there's an error, render ErrorDisplay
+  if (error) {
+    return (
+      <SafeAreaView className="bg-primary h-full">
+        <StatusBar backgroundColor="#161622" style="light" />
+        <ErrorDisplay message={error} />
+      </SafeAreaView>
+    );
+  }
+
+  // Extract weather details if no error
   const { current, location } = weather;
 
   return (

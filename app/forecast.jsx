@@ -6,9 +6,22 @@ import { ScrollView, View } from "react-native";
 import DaysWeather from "../components/DaysWeather";
 import { useWeather } from "../context/WeatherContext";
 import { getWeatherIcon } from "../utils/getWeatherIcons";
+import { useError } from "../context/ErrorContext";
+import ErrorDisplay from "../components/ErrorDisplay";
 
 const Forecast = () => {
   const { weather } = useWeather(); // Access the global weather state
+  const { error } = useError(); // Access the global error state
+
+  // If there's an error, render ErrorDisplay
+  if (error) {
+    return (
+      <SafeAreaView className="bg-primary h-full">
+        <StatusBar backgroundColor="#161622" style="light" />
+        <ErrorDisplay message={error} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="bg-primary h-full">

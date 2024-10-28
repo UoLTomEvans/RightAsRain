@@ -5,7 +5,7 @@ const ErrorContext = createContext();
 
 // Create a provider component
 export const ErrorProvider = ({ children }) => {
-  const [error, setError] = useState(false);
+  const [error, setError] = useState(null);
 
   return (
     <ErrorContext.Provider value={{ error, setError }}>

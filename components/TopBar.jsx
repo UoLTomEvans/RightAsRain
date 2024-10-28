@@ -3,51 +3,80 @@ import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
 import { icons } from "../constants";
 import { debounce } from "lodash";
 import { fetchLocations, fetchWeatherForecast } from "../api/weather";
-import { useWeather } from "../context/WeatherContext"; // Import the custom hook
+import { useWeather } from "../context/WeatherContext";
+import { useError } from "../context/ErrorContext"; // Import Error Context
 
 const TopBar = () => {
   const [searchActive, setSearchActive] = useState(false);
   const [locations, setLocations] = useState([]);
+  const { setError } = useError(); // Access setError from error context
   const { weather, setWeather } = useWeather(); // Access global weather state
 
-  // Fetch weather data for location from WeatherAPI
-  const handleLocation = (loc) => {
+  // Fetch weather data for a selected location from WeatherAPI
+  const handleLocation = async (loc) => {
     setSearchActive(false);
     setLocations([]);
-    fetchWeatherForecast({
-      cityName: loc.name,
-      days: "5",
-    }).then((data) => {
-      setWeather(data); // Update global weather state
-    });
-  };
-
-  // Fetch locations for searching from WeatherAPI
-  const handleSearch = (value) => {
-    if (value.length > 2) {
-      fetchLocations({ cityName: value }).then((data) => {
-        setLocations(data);
-      });
+    try {
+      const data = await fetchWeatherForecast(
+        {
+          cityName: loc.name,
+          days: "5",
+        },
+        setError // Pass setError to handle errors within the API call
+      );
+      if (data.error) {
+        console.error("Error fetching weather data:", data.error);
+      } else {
+        setWeather(data); // Update global weather state
+      }
+    } catch (err) {
+      console.error("Unhandled error fetching weather:", err);
     }
   };
 
-  // Prevent frequent API calls
+  // Fetch locations for the search term from WeatherAPI
+  const handleSearch = async (value) => {
+    if (value.length > 2) {
+      try {
+        const data = await fetchLocations({ cityName: value }, setError); // Pass setError
+        if (data.error) {
+          console.error("Error fetching location data:", data.error);
+        } else {
+          setLocations(data);
+        }
+      } catch (err) {
+        console.error("Unhandled error fetching locations:", err);
+      }
+    }
+  };
+
+  // Prevent frequent API calls using debounce
   const handleTextDebounce = useMemo(
     () => debounce(handleSearch, 800),
     [handleSearch]
   );
 
-  // Default weather
+  // Fetch default weather data for a preset location
   const fetchMyWeatherData = async () => {
-    fetchWeatherForecast({
-      cityName: "Liverpool",
-      days: "5",
-    }).then((data) => {
-      setWeather(data);
-    });
+    try {
+      const data = await fetchWeatherForecast(
+        {
+          cityName: "Liverpool",
+          days: "5",
+        },
+        setError // Pass setError
+      );
+      if (data.error) {
+        console.error("Error fetching default weather:", data.error);
+      } else {
+        setWeather(data);
+      }
+    } catch (err) {
+      console.error("Unhandled error fetching default weather:", err);
+    }
   };
 
-  // Happens on load
+  // Fetch default weather data on component load
   useEffect(() => {
     fetchMyWeatherData();
   }, []);

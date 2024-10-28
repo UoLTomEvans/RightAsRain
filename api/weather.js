@@ -6,26 +6,28 @@ const forecastEndpoint = (params) =>
 const locationsEndpoint = (params) =>
   `https://api.weatherapi.com/v1/search.json?key=${API_KEY}&q=${params.cityName}`;
 
-const apiCall = async (endpoint) => {
+const apiCall = async (endpoint, setError) => {
   const options = {
     method: "GET",
     url: endpoint,
   };
   try {
     const response = await axios.request(options);
+    setError(null);
     return response.data;
   } catch (err) {
-    console.log("Error: ", err);
-    return null;
+    setError(err.message); // Sets the error in global state for app-wide access
+    console.log(err.message);
+    return { error: err.message };
   }
 };
 
-export const fetchWeatherForecast = (params) => {
+export const fetchWeatherForecast = (params, setError) => {
   let forecastUrl = forecastEndpoint(params);
-  return apiCall(forecastUrl);
+  return apiCall(forecastUrl, setError);
 };
 
 export const fetchLocations = (params) => {
   let locationsUrl = locationsEndpoint(params);
-  return apiCall(locationsUrl);
+  return apiCall(locationsUrl, setError);
 };
