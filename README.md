@@ -1,4 +1,5 @@
 --- Run on EXPO GO ---
+
 Get API Key:
 1. Navigate to www.weatherapi.com
 2. Create an account and locate API key at dashboard (https://www.weatherapi.com/my/)
